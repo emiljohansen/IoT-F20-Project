@@ -7,6 +7,7 @@ import utime
 import urequests
 import pycom
 import ujson
+import mqtt_cred as cred
 
 pycom.heartbeat(False)
 
@@ -22,14 +23,20 @@ nets = wlan.scan()
 messageCounter = 0
 errorCounter = 0
 
+
+def sub_cb(topic, msg):
+    print(msg)
+
+
 for net in nets:
-    if net.ssid == 'SSID':
-        wlan.connect(net.ssid, auth=(net.sec, 'PASSWORD'))
+    if net.ssid == 'BK16-2.4Ghz':
+        wlan.connect(net.ssid, auth=(net.sec, 'newton22'))
         print("Connected to wifi")
-        client = MQTTClient("device_id", "io.adafruit.com", user="your_username", password="your_api_key", port=1883)
+        utime.sleep(5)
+        client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
         client.set_callback(sub_cb)
         client.connect()
-        client.subscribe(topic="youraccount/feeds/lights")
+        #client.subscribe(topic="youraccount/feeds/lights")
 
         while not wlan.isconnected():
             pass
@@ -41,6 +48,7 @@ while True:
     averageLight = ((light[0] + light[1]) / 2)
     if 300 > averageLight > 0:
         pycom.rgbled(0xFF7300)  # Orange
+        utime.sleep(1)
     if 600 > averageLight > 300:
         pycom.rgbled(0x00FFF2)  # light blue
         utime.sleep(1)
@@ -58,13 +66,7 @@ while True:
         utime.sleep(1)
     if wlan.isconnected():
         try:
-            client.publish(topic="youraccount/feeds/lights", msg="Light Level: " + light)
+            client.publish(topic="test", msg="OK")
         except OSError as err:
             print("Error!" + str(err), utime.time())
-            errorCounter += 1
-        r.close()
-    else:
-        errorCounter += 1
 
-def sub_cb(topic, msg):
-   print(msg)
