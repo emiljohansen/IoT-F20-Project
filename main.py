@@ -1,3 +1,4 @@
+from mqtt import MQTTClient
 from network import WLAN
 from pysense import Pysense
 from LTR329ALS01 import LTR329ALS01
@@ -6,11 +7,6 @@ import utime
 import urequests
 import pycom
 import ujson
-from mqtt import MQTTClient
-
-
-
-url = 'http://192.168.1.101:5000/temp'
 
 pycom.heartbeat(False)
 
@@ -56,5 +52,3 @@ while True:
 
 def sub_cb(topic, msg):
    print(msg)
-
-
