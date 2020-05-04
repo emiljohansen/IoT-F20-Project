@@ -15,6 +15,10 @@ wlan = WLAN(mode=WLAN.STA)
 uart = UART(0, 115200)
 uart.init(115200, bits=8, parity=None, stop=1)
 
+import machine
+rtc = machine.RTC()
+rtc.ntp_sync("pool.ntp.org")
+
 py = Pysense()
 lt = LTR329ALS01(py)
 
@@ -25,17 +29,19 @@ errorCounter = 0
 
 
 def sub_cb(topic, msg):
-    print(msg)
+    retrived_message = ujson.loads(msg)
+    print(retrived_message)
 
 
 for net in nets:
-    if net.ssid == 'BK16-2.4Ghz':
-        wlan.connect(net.ssid, auth=(net.sec, 'newton22'))
+    if net.ssid == 'SSID':
+        wlan.connect(net.ssid, auth=(net.sec, 'PASSWORD'))
         print("Connected to wifi")
         utime.sleep(5)
         client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
         client.set_callback(sub_cb)
         client.connect()
+        client.subscribe(topic="pycom")
         #client.subscribe(topic="youraccount/feeds/lights")
 
         while not wlan.isconnected():
@@ -66,7 +72,15 @@ while True:
         utime.sleep(1)
     if wlan.isconnected():
         try:
-            client.publish(topic="test", msg="OK")
+            datadict = {
+                "light_level": averageLight,
+                "time_stamp":  rtc.now(),
+                "setpoint": "default",
+                "light_intensity": "easy"
+            }
+            msg = ujson.dumps(datadict)
+            client.publish(topic="test", msg=msg)
+            client.check_msg()
         except OSError as err:
             print("Error!" + str(err), utime.time())
 
