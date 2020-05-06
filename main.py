@@ -16,6 +16,9 @@ wlan = WLAN(mode=WLAN.STA)
 uart = UART(0, 115200)
 uart.init(115200, bits=8, parity=None, stop=1)
 
+SSID = 'insert SSID'
+PASSWORD = 'insert password'
+
 import machine
 rtc = machine.RTC()
 rtc.ntp_sync("pool.ntp.org")
@@ -119,8 +122,8 @@ def increase_intensity(number):
 
 
 for net in nets:
-    if net.ssid == 'TP-LINK_911D':
-        wlan.connect(net.ssid, auth=(net.sec, '60221933'))
+    if net.ssid == SSID:
+        wlan.connect(net.ssid, auth=(net.sec, PASSWORD))
         print("Connected to wifi")
         utime.sleep(5)
         client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
