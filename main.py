@@ -27,9 +27,14 @@ utime.sleep(5)
 nets = wlan.scan()
 messageCounter = 0
 errorCounter = 0
-setpoint = 500;
+
+intensityNumber = 0
+intensity = 0xFF0000
+setpoint = 0
 user_intensity = 0xFF0000
 
+userDefinedPreset = False
+userDefinedIntensity = False
 
 def hex_to_string(hex):
     hexdict = {
@@ -73,24 +78,56 @@ def string_to_hex(number):
 
 def sub_cb(topic, msg):
     m_decode = str(msg.decode("utf-8", "ignore"))
+    t_decode = str(topic.decode("utf-8", "ignore"))
     retrieved_message = ujson.loads(m_decode)
-    global user_intensity
-    global setpoint
-    user_intensity = string_to_hex(retrieved_message["intensity"])
-    setpoint=retrieved_message["setpoint"]
+    print(topic + " , " + msg)
+    print(t_decode + " , " + m_decode)
+    if t_decode == "setpoint":
+        global setpoint
+        global userDefinedPreset
+        global userDefinedIntensity
+        setpoint = retrieved_message["setpoint_value"]
+        userDefinedPreset = True
+        userDefinedIntensity = False
+
+    if t_decode == "intensity":
+        global user_intensity
+        global userDefinedPreset
+        global userDefinedIntensity
+        user_intensity = string_to_hex(retrieved_message["intensity_value"])
+        userDefinedIntensity = True
+        userDefinedPreset = False
+
+
+def decrease_intensity(number):
+    global intensity
+    global intensityNumber
+    intensityNumber -= number
+    if intensityNumber < 0:
+        intensityNumber = 0
+    intensity = string_to_hex(intensityNumber)
+
+
+def increase_intensity(number):
+    global intensity
+    global intensityNumber
+    intensityNumber += number
+    if intensityNumber > 100:
+        intensityNumber = 100
+    intensity = string_to_hex(intensityNumber)
 
 
 
 for net in nets:
-    if net.ssid == 'ID':
-        wlan.connect(net.ssid, auth=(net.sec, 'PASSWORD'))
+    if net.ssid == 'TP-LINK_911D':
+        wlan.connect(net.ssid, auth=(net.sec, '60221933'))
         print("Connected to wifi")
         utime.sleep(5)
         client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
         client.set_callback(sub_cb)
         client.connect()
-        client.subscribe(topic="pycom")
-        #client.subscribe(topic="youraccount/feeds/lights")
+        client.subscribe(topic="intensity")
+        client.subscribe(topic="setpoint")
 
         while not wlan.isconnected():
             pass
@@ -99,30 +136,18 @@ while True:
     messageCounter += 1
     light = lt.light()
     averageLight = ((light[0] + light[1]) / 2)
-    pycom.rgbled(user_intensity)
 
-    #TODO: set points
-
-
-
-    #if 300 > averageLight > 0:
-    #    pycom.rgbled(0xFF7300)  # Orange
-    #    utime.sleep(1)
-    #if 600 > averageLight > 300:
-    #    pycom.rgbled(0x00FFF2)  # light blue
-    #    utime.sleep(1)
-    #if 1200 > averageLight > 600:
-    #    pycom.rgbled(0xFFFF00)  # Yellow
-    #    utime.sleep(1)
-    #if 5000 > averageLight > 1200:
-    #    pycom.rgbled(0x00FF00)  # Green
-    #    utime.sleep(1)
-    #if 15000 > averageLight > 5000:
-    #    pycom.rgbled(0x0000FF)  # Blue
-    #    utime.sleep(1)
-    #if averageLight > 15000:
-    #    pycom.rgbled(0xFF0000)  # Red
-    #    utime.sleep(1)
+    if userDefinedIntensity == True:
+        pycom.rgbled(user_intensity)
+    if userDefinedPreset == True:
+        if setpoint > averageLight:
+            increase_intensity(10)
+        if setpoint < averageLight:
+            decrease_intensity(10)
+        if setpoint == averageLight:
+            pass
+        if intensity != None:
+            pycom.rgbled(intensity)
     utime.sleep(1)
     if wlan.isconnected():
         try:
@@ -133,8 +158,7 @@ while True:
                 "light_intensity": hex_to_string(user_intensity)
             }
             msg = ujson.dumps(datadict)
-            client.publish(topic="test", msg=msg)
+            client.publish(topic="device/1", msg=msg)
             client.check_msg()
         except OSError as err:
             print("Error!" + str(err), utime.time())
-
