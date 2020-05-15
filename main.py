@@ -16,8 +16,8 @@ wlan = WLAN(mode=WLAN.STA)
 uart = UART(0, 115200)
 uart.init(115200, bits=8, parity=None, stop=1)
 
-SSID = 'BG9018_2.4'
-PASSWORD = 'newton23'
+SSID = 'SSID'
+PASSWORD = 'PASSWORD'
 
 import machine
 rtc = machine.RTC()
