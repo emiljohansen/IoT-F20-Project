@@ -11,10 +11,11 @@ url = urlparse(url_str)
 def on_connect(client, userdata, rc):
     client.subscribe("$SYS/#")
 
-file_name = 'logger_times2.csv'
+file_name = 'logger_times3.csv'
 myFile = open(file_name, 'w+')
 myFile.write("LoggerBefore,DeviceTime,Light,Setpoint,Intensity,LoggerAfter\n")
 def on_message(client, userdata, message):
+    
     myFile.write("%.9f," % time.time()) # Before sending
     
     data_object = json.loads(message.payload)
@@ -26,6 +27,7 @@ def on_message(client, userdata, message):
     setpoint_value = data_object['setpoint']
     intensity_value = data_object['light_intensity']
 
+    myFile.write("%.9f," % timestamp)
     myFile.write("%d," % light_value)
     myFile.write("%d," % setpoint_value)
     myFile.write("%d," % intensity_value)

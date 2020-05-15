@@ -27,6 +27,7 @@ def on_message(client, userdata, message):
     intensity_value = data_object['light_intensity']
     message_count = data_object['message_counter']
 
+    myFile.write("%.9f," % timestamp)
     myFile.write("%d," % light_value)
     myFile.write("%d," % setpoint_value)
     myFile.write("%d," % intensity_value)
