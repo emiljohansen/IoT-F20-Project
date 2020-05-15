@@ -39,7 +39,7 @@ count = 0
 list_lights = []
 userDefinedPreset = False
 userDefinedIntensity = False
-dutyCycle = 6
+dutyCycle = 3
 
 def hex_to_string(hex):
     hexdict = {
@@ -58,8 +58,8 @@ def hex_to_string(hex):
     return hexdict.get(hex, "Invalid Number")
 
 
-def string_to_hex(number):
-    if 11 > number > -1:
+def number_to_hex(number):
+    if 11 > number > 0:
         return 0x00001A
     if 21 > number > 11:
         return 0x000033
@@ -81,7 +81,7 @@ def string_to_hex(number):
         return 0x0000FF
     if number > 101:
         return 0x000000
-    if number < -1:
+    if number < 1:
         return 0x000000
 
 
@@ -103,7 +103,7 @@ def sub_cb(topic, msg):
         global userDefinedPreset
         global userDefinedIntensity
         global intensityNumber
-        user_intensity = string_to_hex(retrieved_message["intensity_value"])
+        user_intensity = number_to_hex(retrieved_message["intensity_value"])
         intensityNumber = retrieved_message["intensity_value"]
         userDefinedIntensity = True
         userDefinedPreset = False
@@ -115,7 +115,7 @@ def decrease_intensity(number):
     intensityNumber -= number
     if intensityNumber < 0:
         intensityNumber = 0
-    intensity = string_to_hex(intensityNumber)
+    intensity = number_to_hex(intensityNumber)
     pycom.rgbled(intensity)
 
 
@@ -125,7 +125,7 @@ def increase_intensity(number):
     intensityNumber += number
     if intensityNumber > 100:
         intensityNumber = 100
-    intensity = string_to_hex(intensityNumber)
+    intensity = number_to_hex(intensityNumber)
     pycom.rgbled(intensity)
 
 def median():
@@ -144,7 +144,7 @@ for net in nets:
         wlan.connect(net.ssid, auth=(net.sec, PASSWORD))
         print("Connected to wifi")
         utime.sleep(5)
-        rtc.ntp_sync("pool.ntp.org")
+        rtc.ntp_sync("time.windows.com")
         client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
         client.set_callback(sub_cb)
         client.connect()
@@ -155,11 +155,8 @@ for net in nets:
             pass
         break
 while True:
-    messageCounter += 1
     light = lt.light()
-    #averageLight = ((light[0] + light[1]) / 2)
     averageLight = light[0]
-    #averageLight = light[1]
     if userDefinedIntensity == True:
         pycom.rgbled(user_intensity)
         utime.sleep(1)
@@ -175,14 +172,16 @@ while True:
                 increase_intensity(10)
             if median_value > setpoint:
                 decrease_intensity(10)
-    utime.sleep(1)
+    #utime.sleep(1)
+    messageCounter += 1
     if wlan.isconnected():
         try:
             datadict = {
                 "light_level": averageLight,
                 "time_stamp":  rtc.now(),
                 "setpoint": setpoint,
-                "light_intensity": intensityNumber
+                "light_intensity": intensityNumber,
+                "message_counter": messageCounter
             }
             msg = ujson.dumps(datadict)
             client.publish(topic="device/1", msg=msg)
