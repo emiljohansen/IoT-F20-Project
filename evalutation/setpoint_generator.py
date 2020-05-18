@@ -14,7 +14,7 @@ auth_info = { 'username' : url.username, 'password' : url.password}
 def pub_data_to_mqtt(topic, message):
     pub.single(topic, payload=message, hostname=url.hostname, port=url.port, auth=auth_info)
 
-valid_setpoints = [0, 1, 2, 3, 4, 5]
+valid_setpoints = [0, 1, 2, 3, 4]
 file_name = 'command_times_setpoint.csv'
 with open(file_name, 'w+') as myFile:
     myFile.write("Before,After,Value\n")

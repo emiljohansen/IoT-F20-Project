@@ -14,14 +14,16 @@ auth_info = { 'username' : url.username, 'password' : url.password}
 def pub_data_to_mqtt(topic, message):
     pub.single(topic, payload=message, hostname=url.hostname, port=url.port, auth=auth_info)
 
-valid_intensities = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-file_name = 'command_times_intensity.csv'
+file_name = 'command_times_intensity_new.csv'
+value = 0
 with open(file_name, 'w+') as myFile:
     myFile.write("Before,After,Value\n")
     while True:
-        value = random.choice(valid_intensities)
+        if value == 0:
+            value = 100
+        else:
+            value = 0
         
-
         myFile.write("%.9f," % time.time()) # Before sending
         pub_data_to_mqtt(topic="device/{id}/intensity".format(id=1), message=json.dumps({'intensity_value': value}))
         myFile.write("%.9f," % time.time())
