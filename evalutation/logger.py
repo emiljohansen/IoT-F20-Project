@@ -11,7 +11,7 @@ url = urlparse(url_str)
 def on_connect(client, userdata, rc):
     client.subscribe("$SYS/#")
 
-file_name = 'logger_times3.csv'
+file_name = 'logger_times_setpoint.csv'
 myFile = open(file_name, 'w+')
 myFile.write("LoggerBefore,DeviceTime,Light,Setpoint,Intensity,LoggerAfter\n")
 def on_message(client, userdata, message):
