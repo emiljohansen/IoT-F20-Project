@@ -30,8 +30,8 @@ for index, row in command_intensity_times.iterrows():
     
     log_time = result_value[0]
     device_time = result_value[1]
-    light_changed_at = light_changed_value[0]
-    to_df = to_df.append({'CommandTime' : command_time, 'DeviceTime' : device_time, 'ValueChanged' : log_time, 'Value' : command_value, 'LightChanged' : light_changed_at}, ignore_index=True)
+    light_changed_at = light_changed_value[1]
+    to_df = to_df.append({'CommandTime' : command_time, 'DeviceTime' : device_time, 'ValueChanged' : device_time, 'Value' : command_value, 'LightChanged' : light_changed_at}, ignore_index=True)
     #print(log_time)
 
-to_df.to_csv('intensity_delays.csv', index=False)
+to_df.to_csv('intensity_device_delays.csv', index=False)
