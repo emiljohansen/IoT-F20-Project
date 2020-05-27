@@ -17,8 +17,8 @@ wlan = WLAN(mode=WLAN.STA)
 uart = UART(0, 115200)
 uart.init(115200, bits=8, parity=None, stop=1)
 
-SSID = 'SSID'
-PASSWORD = 'PASSWORD'
+SSID = 'BG9018_2.4'
+PASSWORD = 'newton23'
 
 import machine
 rtc = machine.RTC()
@@ -91,7 +91,7 @@ def sub_cb(topic, msg):
     t_decode = str(topic.decode("utf-8", "ignore"))
     retrieved_message = ujson.loads(m_decode)
     print(t_decode + " , " + m_decode)
-    if t_decode == mqtt_topic.SETPOINT:
+    if "setpoint_value" in retrieved_message:
         global setpoint
         global userDefinedPreset
         global userDefinedIntensity
@@ -99,7 +99,7 @@ def sub_cb(topic, msg):
         userDefinedPreset = True
         userDefinedIntensity = False
 
-    if t_decode == mqtt_topic.INTENSITY:
+    if "intensity_value" in retrieved_message:
         global user_intensity
         global userDefinedPreset
         global userDefinedIntensity
@@ -149,8 +149,7 @@ for net in nets:
         client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
         client.set_callback(sub_cb)
         client.connect()
-        client.subscribe(topic=mqtt_topic.INTENSITY)
-        client.subscribe(topic=mqtt_topic.SETPOINT)
+        client.subscribe(topic="{}/{}/{}/{}/{}/{}/{}".format(mqtt_topic.BUILDING, mqtt_topic.BUILDING_ID, mqtt_topic.ROOM, mqtt_topic.ROOM_ID, mqtt_topic.DEVICE, mqtt_topic.DEVICE_ID, mqtt_topic.ADJUST))
 
         while not wlan.isconnected():
             pass
@@ -160,7 +159,6 @@ while True:
     averageLight = light[0]
     if userDefinedIntensity == True:
         pycom.rgbled(user_intensity)
-        utime.sleep(1)
     if userDefinedPreset == True:
         if count <= dutyCycle:
             list_lights.append(averageLight)
@@ -185,7 +183,7 @@ while True:
                 "message_counter": messageCounter
             }
             msg = ujson.dumps(datadict)
-            client.publish(topic="building/1/room/1/device/1/light", msg=msg)
+            client.publish(topic="{}/{}/{}/{}/{}/{}/{}".format(mqtt_topic.BUILDING,mqtt_topic.BUILDING_ID, mqtt_topic.ROOM, mqtt_topic.ROOM_ID, mqtt_topic.DEVICE, mqtt_topic.DEVICE_ID, mqtt_topic.LIGHT), msg=msg)
             client.check_msg()
         except OSError as err:
             print("Error!" + str(err), utime.time())
