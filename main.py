@@ -173,7 +173,7 @@ while True:
                 increase_intensity(10)
             if median_value > setpoint:
                 decrease_intensity(10)
-    #utime.sleep(1)
+    utime.sleep(1)
     messageCounter += 1
     if wlan.isconnected():
         try:
@@ -185,7 +185,7 @@ while True:
                 "message_counter": messageCounter
             }
             msg = ujson.dumps(datadict)
-            client.publish(topic="device/1", msg=msg)
+            client.publish(topic="building/1/room/1/device/1/light", msg=msg)
             client.check_msg()
         except OSError as err:
             print("Error!" + str(err), utime.time())
