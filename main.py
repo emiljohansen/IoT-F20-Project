@@ -8,6 +8,7 @@ import urequests
 import pycom
 import ujson
 import mqtt_cred as cred
+import mqtt_topic
 
 pycom.heartbeat(False)
 
@@ -90,7 +91,7 @@ def sub_cb(topic, msg):
     t_decode = str(topic.decode("utf-8", "ignore"))
     retrieved_message = ujson.loads(m_decode)
     print(t_decode + " , " + m_decode)
-    if t_decode == "device/1/setpoint":
+    if t_decode == mqtt_topic.SETPOINT:
         global setpoint
         global userDefinedPreset
         global userDefinedIntensity
@@ -98,7 +99,7 @@ def sub_cb(topic, msg):
         userDefinedPreset = True
         userDefinedIntensity = False
 
-    if t_decode == "device/1/intensity":
+    if t_decode == mqtt_topic.INTENSITY:
         global user_intensity
         global userDefinedPreset
         global userDefinedIntensity
@@ -148,8 +149,8 @@ for net in nets:
         client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
         client.set_callback(sub_cb)
         client.connect()
-        client.subscribe(topic="device/1/intensity")
-        client.subscribe(topic="device/1/setpoint")
+        client.subscribe(topic=mqtt_topic.INTENSITY)
+        client.subscribe(topic=mqtt_topic.SETPOINT)
 
         while not wlan.isconnected():
             pass
