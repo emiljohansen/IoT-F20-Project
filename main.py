@@ -8,7 +8,7 @@ import urequests
 import pycom
 import ujson
 import mqtt_cred as cred
-import mqtt_topic
+import meta_information
 
 pycom.heartbeat(False)
 
@@ -149,7 +149,7 @@ for net in nets:
         client = MQTTClient(cred.USER, cred.BROKER, user=cred.USER, password=cred.PASSWORD, port=cred.PORT)
         client.set_callback(sub_cb)
         client.connect()
-        client.subscribe(topic="{}/{}/{}/{}/{}/{}/{}".format(mqtt_topic.BUILDING, mqtt_topic.BUILDING_ID, mqtt_topic.ROOM, mqtt_topic.ROOM_ID, mqtt_topic.DEVICE, mqtt_topic.DEVICE_ID, mqtt_topic.ADJUST))
+        client.subscribe(topic="building/{}/room/{}/device/{}/adjust".format(meta_information.BUILDING_ID, meta_information.ROOM_ID, meta_information.DEVICE_ID))
 
         while not wlan.isconnected():
             pass
@@ -183,7 +183,7 @@ while True:
                 "message_counter": messageCounter
             }
             msg = ujson.dumps(datadict)
-            client.publish(topic="{}/{}/{}/{}/{}/{}/{}".format(mqtt_topic.BUILDING,mqtt_topic.BUILDING_ID, mqtt_topic.ROOM, mqtt_topic.ROOM_ID, mqtt_topic.DEVICE, mqtt_topic.DEVICE_ID, mqtt_topic.LIGHT), msg=msg)
+            client.publish(topic="building/{}/room/{}/device/{}/light".format(meta_information.BUILDING_ID, meta_information.ROOM_ID, meta_information.DEVICE_ID), msg=msg)
             client.check_msg()
         except OSError as err:
             print("Error!" + str(err), utime.time())
